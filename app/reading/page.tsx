@@ -19,34 +19,34 @@ export default function ReadingPage() {
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [aiInterpretation, setAiInterpretation] = useState<string>('');
   const { toast } = useToast();
-  
+
   const handleSpreadSelect = (spreadId: string) => {
     setSelectedSpreadId(spreadId);
   };
-  
+
   const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuestion(e.target.value);
   };
-  
+
   const simulateLoading = () => {
     const totalDuration = Math.random() * (180000 - 120000) + 120000; // 2-3 minutes
     const interval = 1000; // Update every second
     const steps = totalDuration / interval;
     let currentStep = 0;
-    
+
     const timer = setInterval(() => {
       currentStep++;
       const progress = (currentStep / steps) * 100;
       setLoadingProgress(progress);
-      
+
       if (currentStep >= steps) {
         clearInterval(timer);
       }
     }, interval);
-    
+
     return timer;
   };
-  
+
   const handleDrawCards = async () => {
     if (!selectedSpreadId) {
       toast({
@@ -58,58 +58,13 @@ export default function ReadingPage() {
     }
 
     setIsLoading(true);
-    const loadingTimer = simulateLoading();
-
-    try {
-      const newReading = generateReading(selectedSpreadId, question);
-      
-      const response = await fetch('/api/interpret', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          spreadType: newReading.spreadType,
-          question: newReading.question,
-          cards: newReading.cards,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get interpretation');
-      }
-
-      const data = await response.json();
-      
-      // Save reading to localStorage
-      const savedReadings = JSON.parse(localStorage.getItem('tarotReadings') || '[]');
-      localStorage.setItem('tarotReadings', JSON.stringify([...savedReadings, newReading]));
-
-      // Clear loading timer and set states
-      clearInterval(loadingTimer);
-      setReading(newReading);
-      setAiInterpretation(data.interpretation);
-    } catch (error) {
-      clearInterval(loadingTimer);
-      toast({
-        title: "Ошибка при создании расклада",
-        description: "Пожалуйста, попробуйте еще раз.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setLoadingProgress(0);
-    };
-    }
-    
-    setIsLoading(true);
     setLoadingProgress(0);
     const loadingTimer = simulateLoading();
-    
+
     try {
       // Generate reading
       const newReading = generateReading(selectedSpreadId, question);
-      
+
       // Get AI interpretation from our API endpoint
       const response = await fetch('/api/tarot', {
         method: 'POST',
@@ -131,11 +86,11 @@ export default function ReadingPage() {
       }
 
       const data = await response.json();
-      
+
       // Save reading to localStorage
       const savedReadings = JSON.parse(localStorage.getItem('tarotReadings') || '[]');
       localStorage.setItem('tarotReadings', JSON.stringify([...savedReadings, newReading]));
-      
+
       // Clear loading timer and set states
       clearInterval(loadingTimer);
       setReading(newReading);
@@ -152,25 +107,25 @@ export default function ReadingPage() {
       setLoadingProgress(0);
     }
   };
-  
+
   const handleReset = () => {
     setReading(null);
     setQuestion('');
     setSelectedSpreadId('');
     setAiInterpretation('');
   };
-  
+
   return (
     <main className="min-h-screen flex flex-col">
       <Navbar />
       <StarsBackground />
-      
+
       <div className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-2">Гадание на Таро</h1>
         <p className="text-muted-foreground text-center mb-8">
           Выберите расклад, задайте вопрос и получите ответ от карт Таро
         </p>
-        
+
         {isLoading ? (
           <div className="max-w-md mx-auto text-center space-y-6">
             <div className="relative w-24 h-24 mx-auto">
@@ -196,7 +151,7 @@ export default function ReadingPage() {
                 selectedSpreadId={selectedSpreadId} 
               />
             </div>
-            
+
             <div>
               <h2 className="text-xl font-semibold mb-4">2. Задайте вопрос картам</h2>
               <Textarea
@@ -209,7 +164,7 @@ export default function ReadingPage() {
                 Сформулируйте ясный и конкретный вопрос для более точного ответа.
               </p>
             </div>
-            
+
             <div className="flex justify-center">
               <Button 
                 size="lg" 
@@ -224,7 +179,7 @@ export default function ReadingPage() {
         ) : (
           <div className="space-y-8 max-w-5xl mx-auto">
             <ReadingResult reading={reading} />
-            
+
             {aiInterpretation && (
               <div className="bg-card rounded-lg border border-border p-6">
                 <h2 className="text-xl font-semibold text-secondary mb-4">
@@ -237,7 +192,7 @@ export default function ReadingPage() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-center">
               <Button 
                 variant="outline" 
