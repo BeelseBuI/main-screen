@@ -28,25 +28,6 @@ export default function ReadingPage() {
     setQuestion(e.target.value);
   };
 
-  const simulateLoading = () => {
-    const totalDuration = Math.random() * (180000 - 120000) + 120000; // 2-3 minutes
-    const interval = 1000; // Update every second
-    const steps = totalDuration / interval;
-    let currentStep = 0;
-
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = (currentStep / steps) * 100;
-      setLoadingProgress(progress);
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-      }
-    }, interval);
-
-    return timer;
-  };
-
   const handleDrawCards = async () => {
     if (!selectedSpreadId) {
       toast({
@@ -59,14 +40,14 @@ export default function ReadingPage() {
 
     setIsLoading(true);
     setLoadingProgress(0);
-    const loadingTimer = simulateLoading();
+    const loadingTimer = setInterval(() => {
+      setLoadingProgress(prev => prev >= 100 ? 100 : prev + 1); // Prevent exceeding 100%
+    }, 150); // Adjust interval for smoother progress
 
     try {
-      // Generate reading
       const newReading = generateReading(selectedSpreadId, question);
 
-      // Get AI interpretation from our API endpoint
-      const response = await fetch('/api/tarot', {
+      const response = await fetch('/api/interpret', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
