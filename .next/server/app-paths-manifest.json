@@ -1,6 +1,3 @@
 {
-  "/page": "app/page.js",
-  "/reading/page": "app/reading/page.js",
-  "/history/page": "app/history/page.js",
-  "/api/interpret/route": "app/api/interpret/route.js"
+  "/reading/page": "app/reading/page.js"
 }
