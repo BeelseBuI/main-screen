@@ -31,6 +31,55 @@ export default function ReadingPage() {
   const handleDrawCards = async () => {
     if (!selectedSpreadId) {
       toast({
+        title: "Ошибка",
+        description: "Пожалуйста, выберите расклад",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadingProgress(0);
+
+    try {
+      // Generate reading
+      const newReading = generateReading(selectedSpreadId, question);
+      
+      // Send to OpenAI for interpretation
+      const response = await fetch('/api/interpret', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          spreadType: newReading.spreadType,
+          question: newReading.question,
+          cards: newReading.cards.map(card => ({
+            name: card.card.nameRu,
+            position: card.position
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get interpretation');
+      }
+
+      const data = await response.json();
+      setReading(newReading);
+      setAiInterpretation(data.interpretation);
+
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить интерпретацию",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+      setLoadingProgress(100);
+    }
         title: "Выберите расклад",
         description: "Пожалуйста, выберите тип расклада перед началом гадания.",
         variant: "destructive",
