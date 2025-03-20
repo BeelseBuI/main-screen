@@ -44,7 +44,7 @@ export default function ReadingPage() {
     try {
       // Generate reading
       const newReading = generateReading(selectedSpreadId, question);
-      
+
       // Send to OpenAI for interpretation
       const response = await fetch('/api/interpret', {
         method: 'POST',
@@ -79,65 +79,6 @@ export default function ReadingPage() {
     } finally {
       setIsLoading(false);
       setLoadingProgress(100);
-    }
-        title: "Выберите расклад",
-        description: "Пожалуйста, выберите тип расклада перед началом гадания.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadingProgress(0);
-    const loadingTimer = setInterval(() => {
-      setLoadingProgress(prev => prev >= 100 ? 100 : prev + 1);
-    }, 150);
-
-    try {
-      const newReading = generateReading(selectedSpreadId, question);
-      
-      const response = await fetch('/api/interpret', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          spreadType: newReading.spreadType,
-          question: newReading.question,
-          cards: newReading.cards
-        })
-      });
-        },
-        body: JSON.stringify({
-          spreadType: newReading.spreadType,
-          question: newReading.question,
-          cards: newReading.cards.map(c => ({
-            name: c.card.nameRu,
-            position: c.position
-          }))
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get interpretation');
-      }
-
-      const data = await response.json();
-
-      clearInterval(loadingTimer);
-      setReading(newReading);
-      setAiInterpretation(data.interpretation);
-    } catch (error) {
-      console.error('Error:', error);
-      clearInterval(loadingTimer);
-      toast({
-        title: "Ошибка при создании расклада",
-        description: "Пожалуйста, попробуйте еще раз.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setLoadingProgress(0);
     }
   };
 
