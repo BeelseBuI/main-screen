@@ -19,6 +19,8 @@ export default function ReadingPage() {
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [aiInterpretation, setAiInterpretation] = useState<string>('');
   const { toast } = useToast();
+  let loadingTimer; // Assuming this is defined elsewhere and cleared in the finally block
+
 
   const handleSpreadSelect = (spreadId: string) => {
     setSelectedSpreadId(spreadId);
@@ -31,15 +33,19 @@ export default function ReadingPage() {
   const handleDrawCards = async () => {
     if (!selectedSpreadId) {
       toast({
-        title: "Ошибка",
-        description: "Пожалуйста, выберите расклад",
-        variant: "destructive"
+        title: "Выберите расклад",
+        description: "Пожалуйста, выберите тип расклада перед началом гадания.",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     setLoadingProgress(0);
+    loadingTimer = setInterval(() => {
+      setLoadingProgress((prevProgress) => Math.min(prevProgress + 10, 100));
+    }, 100);
+
 
     try {
       // Generate reading
@@ -54,9 +60,9 @@ export default function ReadingPage() {
         body: JSON.stringify({
           spreadType: newReading.spreadType,
           question: newReading.question,
-          cards: newReading.cards.map(card => ({
-            name: card.card.nameRu,
-            position: card.position
+          cards: newReading.cards.map(c => ({
+            name: c.card.nameRu,
+            position: c.position
           }))
         })
       });
@@ -66,15 +72,17 @@ export default function ReadingPage() {
       }
 
       const data = await response.json();
+
+      clearInterval(loadingTimer);
       setReading(newReading);
       setAiInterpretation(data.interpretation);
-
     } catch (error) {
       console.error('Error:', error);
+      clearInterval(loadingTimer);
       toast({
-        title: "Ошибка",
-        description: "Не удалось получить интерпретацию",
-        variant: "destructive"
+        title: "Ошибка при создании расклада",
+        description: "Пожалуйста, попробуйте еще раз.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
