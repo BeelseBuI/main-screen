@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { generateTarotInterpretation } from '@/lib/openai-service';
 import { Navbar } from '@/components/navbar';
 import { StarsBackground } from '@/components/ui/stars-background';
 import { SpreadSelector } from '@/components/spread-selector';
@@ -54,6 +55,51 @@ export default function ReadingPage() {
         variant: "destructive",
       });
       return;
+    }
+
+    setIsLoading(true);
+    const loadingTimer = simulateLoading();
+
+    try {
+      const newReading = generateReading(selectedSpreadId, question);
+      
+      const response = await fetch('/api/interpret', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          spreadType: newReading.spreadType,
+          question: newReading.question,
+          cards: newReading.cards,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get interpretation');
+      }
+
+      const data = await response.json();
+      
+      // Save reading to localStorage
+      const savedReadings = JSON.parse(localStorage.getItem('tarotReadings') || '[]');
+      localStorage.setItem('tarotReadings', JSON.stringify([...savedReadings, newReading]));
+
+      // Clear loading timer and set states
+      clearInterval(loadingTimer);
+      setReading(newReading);
+      setAiInterpretation(data.interpretation);
+    } catch (error) {
+      clearInterval(loadingTimer);
+      toast({
+        title: "Ошибка при создании расклада",
+        description: "Пожалуйста, попробуйте еще раз.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setLoadingProgress(0);
+    };
     }
     
     setIsLoading(true);
