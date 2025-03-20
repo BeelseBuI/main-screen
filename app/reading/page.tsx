@@ -68,15 +68,11 @@ export default function ReadingPage() {
 
       const data = await response.json();
 
-      // Save reading to localStorage
-      const savedReadings = JSON.parse(localStorage.getItem('tarotReadings') || '[]');
-      localStorage.setItem('tarotReadings', JSON.stringify([...savedReadings, newReading]));
-
-      // Clear loading timer and set states
       clearInterval(loadingTimer);
       setReading(newReading);
       setAiInterpretation(data.interpretation);
     } catch (error) {
+      console.error('Error:', error);
       clearInterval(loadingTimer);
       toast({
         title: "Ошибка при создании расклада",
