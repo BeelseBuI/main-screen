@@ -90,16 +90,23 @@ export default function ReadingPage() {
     setIsLoading(true);
     setLoadingProgress(0);
     const loadingTimer = setInterval(() => {
-      setLoadingProgress(prev => prev >= 100 ? 100 : prev + 1); // Prevent exceeding 100%
-    }, 150); // Adjust interval for smoother progress
+      setLoadingProgress(prev => prev >= 100 ? 100 : prev + 1);
+    }, 150);
 
     try {
       const newReading = generateReading(selectedSpreadId, question);
-
+      
       const response = await fetch('/api/interpret', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          spreadType: newReading.spreadType,
+          question: newReading.question,
+          cards: newReading.cards
+        })
+      });
         },
         body: JSON.stringify({
           spreadType: newReading.spreadType,
