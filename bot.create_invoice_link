@@ -1,0 +1,23 @@
+class UpgradeAPIView(APIView):
+    authentication_classes = [TMAAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request):
+        if request.user.is_premium:
+            raise Exception() # Обработать логику, если пользователь уже имеет премиум
+        return Response(
+            data={
+                'invoice_link': bot.create_invoice_link(
+                    title='Оплата премиум статуса',
+                    description='С премиумом тапается лучше! Проложи дорогу к криптоинвестициям',
+                    payload=f'user_{request.user.id}',
+                    provider_token=settings.TELEGRAM_PAYMENTS_PROVIDER_TOKEN,
+                    currency='RUB',
+                    prices=[LabeledPrice(label='Премиум статус', amount=5000)],
+                    need_name=True,
+                    need_email=True,
+                    need_phone_number=False,
+                    need_shipping_address=False,
+                )
+            }
+        )
